@@ -129,33 +129,38 @@ int main(int argc, char* argv[]){
         perror("Error Opening Output File");
         return EXIT_FAILURE;
     }
-    int num_request_threads = argc - 2;
-    struct thread_params request[num_request_threads];
-    /* Loop Through Input Files */
-    for(i=0; i<(num_request_threads); i++){
-        request[i].filename = argv[i+1];
-        request[i].q = &host_queue;
-        pthread_create( &request[i].thread_number, NULL, producer_thread, &request[i]);
+    
+
+    int threadcounts[4] = {1, 6, 14, 20};
+    for(int i = 0; i < 4; i++){
+        int num_request_threads = argc - 2;
+        struct thread_params request[num_request_threads];
+        /* Loop Through Input Files */
+        for(i=0; i<(num_request_threads); i++){
+            request[i].filename = argv[i+1];
+            request[i].q = &host_queue;
+            pthread_create( &request[i].thread_number, NULL, producer_thread, &request[i]);
+        }
+        int num_resolver_threads = threadcounts[i];
+        struct thread_params resolver[num_resolver_threads];
+        /* Creater resolver threads */
+        for(i=0; i<(num_resolver_threads); i++){
+            resolver[i].file = outputfp;
+            resolver[i].q = &host_queue;
+            pthread_create( &resolver[i].thread_number, NULL, consumer_thread, &resolver[i]);
+
+        }
+        for(i=0; i<num_request_threads; i++){
+            pthread_join(request[i].thread_number, NULL);
+        }
+        producer_done = true;
+        for(i=0; i<num_resolver_threads; i++){
+            pthread_join(resolver[i].thread_number, NULL);
+        }
+        fclose(outputfp);
+        pthread_mutex_destroy(&queue_mutex);
+        pthread_mutex_destroy(&file_mutex);
     }
 
-    int num_resolver_threads = sysconf(_SC_NPROCESSORS_ONLN);
-    struct thread_params resolver[num_resolver_threads];
-    /* Creater resolver threads */
-    for(i=0; i<(num_resolver_threads); i++){
-        resolver[i].file = outputfp;
-        resolver[i].q = &host_queue;
-        pthread_create( &resolver[i].thread_number, NULL, consumer_thread, &resolver[i]);
-
-    }
-    for(i=0; i<num_request_threads; i++){
-        pthread_join(request[i].thread_number, NULL);
-    }
-    producer_done = true;
-    for(i=0; i<num_resolver_threads; i++){
-        pthread_join(resolver[i].thread_number, NULL);
-    }
-    fclose(outputfp);
-    pthread_mutex_destroy(&queue_mutex);
-    pthread_mutex_destroy(&file_mutex);
     return EXIT_SUCCESS;
 }

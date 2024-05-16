@@ -6,6 +6,12 @@ LFLAGS = -Wall -Wextra -pthread
 
 all: lookup queueTest pthread-hello multi-lookup
 
+matrix: matrix.o
+	$(CC) $(LFLAGS) $^ -o $@
+
+matrix.o: matrix.c
+	$(CC) $(CFLAGS) $<
+
 multi-lookup: multi-lookup.o queue.o util.o
 	$(CC) $(LFLAGS) $^ -o $@
 
