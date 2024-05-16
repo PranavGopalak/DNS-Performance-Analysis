@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     # Test for different matrix sizes
     for n in [500, 1000, 2500]:
-        for num_processes in [4]:
+        for num_processes in [1,6,14,20]:
             matrix_size, time_taken = matrix_multiplication(n, num_processes, 1000)
             print(f"Time taken for {n}x{n} matrix multiplication with {num_processes} processes: {time_taken} seconds")
             # df = pd.concat([df, pd.DataFrame({'Consumer Processes': [count], 'Execution Time': [execution_time]})],
